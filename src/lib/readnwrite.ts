@@ -43,7 +43,7 @@ export async function lesa(skra: string, category: string): Promise<Array<Namssk
 				);
 				const data = lines.slice(1).map((line) => line.split(";"));
 				data.forEach((values) => {
-					let obj: Namsskeid = {
+					const obj: Namsskeid = {
 						Numer: '',
 						Heiti: '',
 						Einingar: 0,

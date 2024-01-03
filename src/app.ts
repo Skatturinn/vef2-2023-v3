@@ -1,8 +1,5 @@
-import express, { NextFunction, Request, Response, Errback, ErrorRequestHandler } from 'express';
+import express, { Request, Response, ErrorRequestHandler } from 'express';
 import dotenv from 'dotenv';
-import { catchErrors } from './lib/catch-errors.js';
-import { router, bye, hello, error } from './routes/api.js';
-import { lesa } from './lib/readnwrite.js';
 import { buildDB, getDeildir } from './lib/build.js';
 
 
@@ -24,12 +21,16 @@ app.get('/build',
 
 const port = 3000;
 
-function notFoundHandler(req: Request, res: Response, next: NextFunction) {
+function notFoundHandler(req: Request, res: Response) {
 	console.warn('Not found', req.originalUrl);
 	res.status(404).json({ error: 'Not found' });
 }
 
-const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+type ErrorRequest = {
+	status: number
+};
+
+const errorHandler: ErrorRequestHandler = (err: ErrorRequest, req, res) => {
 	console.error(err);
 	if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
 		return res.status(400).json({ error: 'Invalid json' });

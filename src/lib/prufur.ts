@@ -9,7 +9,7 @@ export function isUrlValid(string: string): string {
 /**
  * athugar hvort skra/directory se til
  */
-export async function isPathValid(skra: string): Promise<Boolean> {
+export async function isPathValid(skra: string): Promise<boolean> {
 	return fs.access(skra)
 		.then(() => true)
 		.catch(() => false);

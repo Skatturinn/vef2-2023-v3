@@ -1,4 +1,3 @@
-import { error } from 'console';
 import { readFile } from 'fs/promises';
 import pg from 'pg';
 import dotenv from 'dotenv';
