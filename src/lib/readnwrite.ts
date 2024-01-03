@@ -5,17 +5,17 @@ export type Namsskeid = {
 	Numer: string,
 	Heiti: string,
 	Einingar: number,
-	Kennslumisseri: string,
-	Namstig: string;
-	[key: string]: string | number;
+	Kennslumisseri: Array<string>,
+	Namstig: string,
+	Vefsida: string,
+	category: string;
+	[key: string]: string | number | Array<string>;
 };
 
 function parseDecimalCommaNumber(input: string): number {
 	const formattedInput = input?.replace(",", ".");
 	const result = parseFloat(formattedInput);
-	console.log(result)
 	if (Number.isNaN(result)) {
-		console.error("Invalid input. Unable to convert to a number.");
 		return 0;
 	}
 	return result;
@@ -24,7 +24,7 @@ function parseDecimalCommaNumber(input: string): number {
  * @param {path} skra slóð á skrá
  * @returns vigur með obj ef gilt
  */
-export async function lesa(skra: string): Promise<Array<Namsskeid>> {
+export async function lesa(skra: string, category: string): Promise<Array<Namsskeid>> {
 	const vigur: Array<Namsskeid> = [];
 	const skratest = await isPathValid(skra);
 	if (skratest) {
@@ -43,18 +43,19 @@ export async function lesa(skra: string): Promise<Array<Namsskeid>> {
 				);
 				const data = lines.slice(1).map((line) => line.split(";"));
 				data.forEach((values) => {
-					console.log(values)
 					let obj: Namsskeid = {
 						Numer: '',
 						Heiti: '',
 						Einingar: 0,
-						Kennslumisseri: '',
-						Namstig: ''
+						Kennslumisseri: [''],
+						Namstig: '',
+						Vefsida: '',
+						category: ''
 					};
 					if (values.length !== 6) {
 						// eigum von á values með lengdina 6
 						if (values[0] === "") {
-							while (values[0] === "" && values.length > 1) {
+							while (values[0] === "" && values.length > 0) {
 								// ef fyrsti er auður fjarlægum við hann°°
 								values.shift();
 							}
@@ -66,18 +67,25 @@ export async function lesa(skra: string): Promise<Array<Namsskeid>> {
 					header.forEach((key, index) => {
 						if (index === 2) {
 							obj[key] = parseDecimalCommaNumber(values[index]);
-						} else if (index === 5) {
-							obj[key] = isUrlValid(values[index]) ? values[index] : ''
+						} else if (index === 3) {
+							obj[key] = [values[index]]
 						}
-						obj[key] = values[index];
+						else if (index === 5) {
+							obj[key] = isUrlValid(values[index])
+						} else {
+							obj[key] = values[index];
+						}
 					});
+					obj.category = category;
 					const existingObjIndex = vigur.findIndex((j: Namsskeid) => j.Numer === obj.Numer && j.Kennslumisseri !== obj.Kennslumisseri);
 					if (existingObjIndex !== -1) {
 						const j = vigur[existingObjIndex];
-						if (j.Kennslumisseri !== obj.Kennslumisseri) { j.Kennslumisseri += `, ${obj.Kennslumisseri}` }
-						if (j.Heiti !== obj.Heiti) { j.Heiti += `, ${obj.Heiti}` }
+						if (j.Kennslumisseri !== obj.Kennslumisseri) { j.Kennslumisseri.push(obj.Kennslumisseri[0]) }
+						if (j.Heiti !== obj.Heiti) { j.Heiti += `/ ${obj.Heiti}` }
 					} else {
-						vigur.push(obj);
+						if (typeof obj.Numer === "string" && obj.Numer.length) {
+							vigur.push(obj);
+						}
 					}
 				});
 			}
@@ -90,31 +98,40 @@ export async function lesa(skra: string): Promise<Array<Namsskeid>> {
 	return vigur;
 }
 
+
+
+
+
+
+
+
 /**
  * @param {String} skra slóð á skrá
  * @returns {String} Html kóða fyrir linu i töflu
  */
-export async function skrifa(skra: string) {
-	let linur = "";
-	const vigur = await lesa(skra);
-	if (!vigur.length) {
-		return linur;
-	}
-	vigur.forEach((stak) => {
-		if (stak.Heiti) {
-			const misseri = ["Vor", "Sumar", "Haust"];
-			linur += `<tr class="row">
-					<td>${stak.Numer}</td>
-					<td>${stak.Heiti}</td>
-					<td>${stak.Einingar}</td>
-					<td>${misseri.includes(stak.Kennslumisseri) ? stak.Kennslumisseri : ""}</td>
-					<td>${stak.Namstig ? stak.Namstig : ""}</td>
-					<td>${stak.Vefsida}">
-					Skoða
-					</td>
-		  		</tr>`;
-			// console.log(stak.Vefsida)
-		}
-	});
-	return linur;
-}
+// 	export async function skrifa(skra: string) {
+// 	let linur = "";
+// 	const vigur = await lesa(skra);
+// 	if (!vigur.length) {
+// 		return linur;
+// 	}
+// 	vigur.forEach((stak) => {
+// 		if (stak.Heiti) {
+// 			const misseri = ["Vor", "Sumar", "Haust"];
+// 			linur += `<tr class="row">
+// 					<td>${stak.Numer}</td>
+// 					<td>${stak.Heiti}</td>
+// 					<td>${stak.Einingar}</td>
+// 					<td>${misseri.includes(stak.Kennslumisseri[0]) ? stak.Kennslumisseri : ""}</td>
+// 					<td>${stak.Namstig ? stak.Namstig : ""}</td>
+// 					<td>${stak.Vefsida}">
+// 					Skoða
+// 					</td>
+// 		  		</tr>`;
+// 			// console.log(stak.Vefsida)
+// 		}
+// 	});
+// 	return linur;
+// }
+
+

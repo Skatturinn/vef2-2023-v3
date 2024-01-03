@@ -62,6 +62,22 @@ Nota skal gögn sambærileg þeim úr verkefni 1 og eru í `data/` möppunni fyr
 
 Útbúa þarf skema fyrir gögn í gagnagrunni út frá gögnum.
 
+Hann var med
+id
+title
+slug
+description
+created
+updated
+links {
+self {
+href
+},
+courses {
+href
+}
+}
+
 Um gögnin gildir:
 
 - Deild verður að eiga:

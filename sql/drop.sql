@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS namsskeid;
+DROP TABLE IF EXISTS deild;

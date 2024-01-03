@@ -1,22 +1,13 @@
 import fs from 'fs/promises';
 /**
  * Fínpúsanlega einfalt
- * skoðar hvort URL sé löglegur og skilar boolean
- * @param {String} string 
- * @returns {Boolean}
+ * skoðar hvort URL sé löglegur og skilar hlekknum
  */
-export function isUrlValid(string: string): Boolean {
-	try {
-		const a = new URL(string);
-		return !!a
-	} catch {
-		return false
-	}
+export function isUrlValid(string: string): string {
+	return URL.canParse(string) ? (new URL(string)).href : '';
 }
 /**
  * athugar hvort skra/directory se til
- * @param {String} skra 
- * @returns {Boolean}
  */
 export async function isPathValid(skra: string): Promise<Boolean> {
 	return fs.access(skra)

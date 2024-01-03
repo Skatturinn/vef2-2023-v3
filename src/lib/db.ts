@@ -1,10 +1,15 @@
 import { error } from 'console';
 import { readFile } from 'fs/promises';
 import pg from 'pg';
+import dotenv from 'dotenv';
+import { Deildir } from './build';
+import { Namsskeid } from './readnwrite';
+
+dotenv.config()
 
 const SCHEMA_FILE = './sql/schema.sql';
 const DROP_SCHEMA_FILE = './sql/drop.sql';
-
+// DATABASE_URL = 'postgres://Notandi:ShoheiOhtani700M@localhost:5432/vef2-2022-v2'
 const { DATABASE_URL: connectionString, NODE_ENV: nodeEnv = 'development' } =
 	process.env;
 
@@ -24,7 +29,7 @@ pool.on('error', (err: Error) => {
 	process.exit(-1);
 });
 
-type QueryInput = string | number | null;
+type QueryInput = string | number | null | Array<string>;
 
 export async function query(q: string, values: Array<QueryInput> = []) {
 	let client;
@@ -65,84 +70,84 @@ export async function end() {
 }
 
 /* TODO útfæra aðgeðir á móti gagnagrunni */
-export async function listEvents() {
-	const q = `
-	  SELECT
-		id, name, slug, description, created, updated
-	  FROM
-		events
-	`;
+// export async function listEvents() {
+// 	const q = `
+// 	  SELECT
+// 		id, name, slug, description, created, updated
+// 	  FROM
+// 		events
+// 	`;
 
-	const result = await query(q);
+// 	const result = await query(q);
 
-	if (result) {
-		return result.rows;
-	}
+// 	if (result) {
+// 		return result.rows;
+// 	}
 
-	return null;
-}
+// 	return null;
+// }
 
-export async function listEvent(slug: string) {
-	const q = `
-	SELECT
-		id, name, slug, description, location, url, created, updated
-	FROM
-		events
-	WHERE slug = $1
-	`;
+// export async function listEvent(slug: string) {
+// 	const q = `
+// 	SELECT
+// 		id, name, slug, description, location, url, created, updated
+// 	FROM
+// 		events
+// 	WHERE slug = $1
+// 	`;
 
-	const result = await query(q, [slug]);
-	if (result && result.rowCount === 1) {
-		return result.rows[0];
-	}
+// 	const result = await query(q, [slug]);
+// 	if (result && result.rowCount === 1) {
+// 		return result.rows[0];
+// 	}
 
-	return null // gekk ekki
-}
+// 	return null // gekk ekki
+// }
 
-export async function listRegistered(event) {
-	const q = `
-	  SELECT
-		id, name, comment
-	  FROM
-		registrations
-	  WHERE event = $1
-	`;
+// export async function listRegistered(event) {
+// 	const q = `
+// 	  SELECT
+// 		id, name, comment
+// 	  FROM
+// 		registrations
+// 	  WHERE event = $1
+// 	`;
 
-	const result = await query(q, [event]);
+// 	const result = await query(q, [event]);
 
-	if (result) {
-		return result.rows;
-	}
+// 	if (result) {
+// 		return result.rows;
+// 	}
 
-	return null;
-}
+// 	return null;
+// }
 // skráir þig á viðburð
-export async function register({ name, comment, event } = {}) {
-	const q = `
-	  INSERT INTO registrations
-		(name, comment, event)
-	  VALUES
-		($1, $2, $3)
-	  RETURNING
-		id, name, comment, event;
-	`;
-	let b = true;
-	const arr = await listRegistered(event)
-	arr.forEach(element => {
-		if (element.name === name) {
-			b = false
-		}
-	});
-	if (b) {
-		const values = [name, comment, event];
-		const result = await query(q, values);
-		if (result && result.rowCount === 1) {
-			return result.rows[0];
-		}
-	}
-	throw new Error('Notandi núþegar skráður')
+// export async function register({ name, comment, event } = {}) {
+// 	const q = `
+// 	  INSERT INTO registrations
+// 		(name, comment, event)
+// 	  VALUES
+// 		($1, $2, $3)
+// 	  RETURNING
+// 		id, name, comment, event;
+// 	`;
+// 	let b = true;
+// 	const arr = await listRegistered(event)
+// 	arr.forEach(element => {
+// 		if (element.name === name) {
+// 			b = false
+// 		}
+// 	});
+// 	if (b) {
+// 		const values = [name, comment, event];
+// 		const result = await query(q, values);
+// 		if (result && result.rowCount === 1) {
+// 			return result.rows[0];
+// 		}
+// 	}
+// 	throw new Error('Notandi núþegar skráður')
 
-}
+// }
 // export async function unregister({ name, event } = {}) {
 // 	const q = `
 // 		DELETE FROM registrations
@@ -152,31 +157,31 @@ export async function register({ name, comment, event } = {}) {
 // 	const result = await query(q, values);
 // 	return result?.rowCount
 // }
-export async function unregister({ name, event } = {}) {
-	let values;
-	let q;
-	if (name) {
-		q = `
-		DELETE FROM registrations
-		WHERE name = $1 AND event = $2
-	  `;
-		values = [name, event];
-	} else {
-		q = `
-		DELETE FROM registrations
-		WHERE event = $1
-	  `;
-		values = [event]
-	}
+// export async function unregister({ name, event } = {}) {
+// 	let values;
+// 	let q;
+// 	if (name) {
+// 		q = `
+// 		DELETE FROM registrations
+// 		WHERE name = $1 AND event = $2
+// 	  `;
+// 		values = [name, event];
+// 	} else {
+// 		q = `
+// 		DELETE FROM registrations
+// 		WHERE event = $1
+// 	  `;
+// 		values = [event]
+// 	}
 
-	try {
-		const result = await query(q, values);
-		return result?.rowCount
-	} catch (error) {
-		console.error('Error during unregister:', error.message);
-		return null;
-	}
-}
+// 	try {
+// 		const result = await query(q, values);
+// 		return result?.rowCount
+// 	} catch (error) {
+// 		console.error('Error during unregister:', error.message);
+// 		return null;
+// 	}
+// }
 // export async function deleteEvent({ event } = {}) {
 // 	await unregister({ name: false, event })
 // 	const q = `
@@ -192,13 +197,38 @@ export async function unregister({ name, event } = {}) {
 // 		return null;
 // 	}
 // }
-export async function deleteEvent(id) {
-	await unregister({ name: false, event: id })
+// export async function deleteEvent(id) {
+// 	await unregister({ name: false, event: id })
+// 	const q = `
+// 	  DELETE FROM events
+// 	  WHERE id = $1;
+// 	`;
+// 	const values = [id]
+// 	const result = await query(q, values);
+// 	if (result && result.rowCount === 1) {
+// 		return result.rows[0];
+// 	}
+
+// 	return null;
+// }
+// CREATE TABLE public.deild (
+// 	id SERIAL PRIMARY KEY,
+//   	name VARCHAR(64) NOT NULL UNIQUE,
+//   	slug VARCHAR(64) NOT NULL UNIQUE,
+// 	description TEXT,
+//     created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+//   	updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+// );
+export async function createDeild({ title, description, csv }: Deildir) {
+	const slug = csv.split('.')[0];
 	const q = `
-	  DELETE FROM events
-	  WHERE id = $1;
+	  INSERT INTO deild
+		(name, description, slug)
+	  VALUES
+		($1, $2, $3)
+	  RETURNING slug;
 	`;
-	const values = [id]
+	const values = [title, description, slug];
 	const result = await query(q, values);
 	if (result && result.rowCount === 1) {
 		return result.rows[0];
@@ -206,22 +236,33 @@ export async function deleteEvent(id) {
 
 	return null;
 }
-
-export async function createEvent({ name, slug, description, location, url }:object = {}) {
+// CREATE TABLE public.namsskeid(
+// 	id SERIAL PRIMARY KEY,
+// 	numer VARCHAR(64) NOT NULL UNIQUE,
+// 	name VARCHAR(64) NOT NULL,
+// 	category VARCHAR(64) NOT NULL,
+// 	einingar FLOAT,
+// 	kennslumisseri VARCHAR(64),
+// 	namstig VARCHAR(64),
+// 	vefsida VARCHAR(64),
+// 	created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+// 	CONSTRAINT category FOREIGN KEY(category) REFERENCES deild(slug)
+// )
+export async function createNamsskeid({ Numer, Heiti, Einingar, Kennslumisseri, Namstig, Vefsida, category }: Namsskeid) {
 	const q = `
-	  INSERT INTO events
-		(name, slug, description, location, url)
+	  INSERT INTO namsskeid
+		(numer, name, category, einingar, kennslumisseri, namstig, vefsida)
 	  VALUES
-		($1, $2, $3, $4, $5)
-	  RETURNING id, name, slug, description, location, url;
+		($1, $2, $3, $4, $5, $6, $7)
+	  RETURNING id;
 	`;
-	const values = [name, slug, description, location, url];
+	const values = [Numer, Heiti, category, Einingar, Kennslumisseri, Namstig, Vefsida];
 	const result = await query(q, values);
 	if (result && result.rowCount === 1) {
 		return result.rows[0];
 	}
 
-	return null;
+	throw new Error('Error with query INSERT INTO namsskeid');
 }
 // export async function deleteEvent(id) {
 // 	const q = `
@@ -235,43 +276,43 @@ export async function createEvent({ name, slug, description, location, url }:obj
 
 // 	return null;
 // }
-export async function listEventByName(name) {
-	const q = `
-	  SELECT
-		id, name, slug, description, created, updated
-	  FROM
-		events
-	  WHERE name = $1
-	`;
+// export async function listEventByName(name) {
+// 	const q = `
+// 	  SELECT
+// 		id, name, slug, description, created, updated
+// 	  FROM
+// 		events
+// 	  WHERE name = $1
+// 	`;
 
-	const result = await query(q, [name]);
+// 	const result = await query(q, [name]);
 
-	if (result && result.rowCount === 1) {
-		return result.rows[0];
-	}
+// 	if (result && result.rowCount === 1) {
+// 		return result.rows[0];
+// 	}
 
-	return null;
-}
+// 	return null;
+// }
 
-// Updatear ekki description, erum ekki að útfæra partial update
-export async function updateEvent(id, { name, slug, description }: object<string> = {}) {
-	const q = `
-	  UPDATE events
-		SET
-		  name = $1,
-		  slug = $2,
-		  description = $3,
-		  updated = CURRENT_TIMESTAMP
-	  WHERE
-		id = $4
-	  RETURNING id, name, slug, description;
-	`;
-	const values = [name, slug, description, id];
-	const result = await query(q, values);
+// // Updatear ekki description, erum ekki að útfæra partial update
+// export async function updateEvent(id, { name, slug, description }: object<string> = {}) {
+// 	const q = `
+// 	  UPDATE events
+// 		SET
+// 		  name = $1,
+// 		  slug = $2,
+// 		  description = $3,
+// 		  updated = CURRENT_TIMESTAMP
+// 	  WHERE
+// 		id = $4
+// 	  RETURNING id, name, slug, description;
+// 	`;
+// 	const values = [name, slug, description, id];
+// 	const result = await query(q, values);
 
-	if (result && result.rowCount === 1) {
-		return result.rows[0];
-	}
+// 	if (result && result.rowCount === 1) {
+// 		return result.rows[0];
+// 	}
 
-	return null;
-}
+// 	return null;
+// }
