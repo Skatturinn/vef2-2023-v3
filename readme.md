@@ -13,7 +13,11 @@ Markmið verkefnisins:
 
 ### Vefþjónustur
 
-Útbúa skal vefþjónustur fyrir „okkar eigin kennsluskrá“, þ.e.a.s. þjónusta sem notar HTTP og JSON til að skila gögnum fyrir deildir og áfanga þeirra. Viðeigandi slóð og HTTP svör eru gefin fyrir deildir en útfæra þarf fyrir áfanga. Gera skal vefþjónustur eins _restful_ og hægt er (sjá námsefni).
+Útbúa skal vefþjónustur fyrir „okkar eigin kennsluskrá“,
+þ.e.a.s. þjónusta sem notar HTTP
+og JSON til að skila gögnum fyrir deildir og áfanga þeirra.
+Viðeigandi slóð og HTTP svör eru gefin fyrir deildir en útfæra þarf fyrir áfanga.
+Gera skal vefþjónustur eins _restful_ og hægt er (sjá námsefni).
 
 Fyrir aðrar slóðir skal skila `404`. Ef villa kemur upp skal almennt skila `500`.
 
