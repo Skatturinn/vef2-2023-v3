@@ -1,13 +1,13 @@
 import path from 'path';
 import fs from 'fs/promises';
-import { createDeild, createNamsskeid, createSchema, dropSchema, end, query } from './db.js';
-import { lesa, Namsskeid } from './readnwrite.js';
+import { createDeild, createNamsskeid, createSchema, dropSchema, end } from './db.js';
+import { lesa } from './readnwrite.js';
 // import { tabletemplate, template } from './html.js';
 // import { skrifa } from './readandwrite.js';
 // import { isPathValid } from './prufur.js';
 
 // File path
-const filePath = path.join('data', 'index.json');
+// const filePath = path.join('data', 'index.json');
 
 export async function getDeildir(): Promise<Array<Deildir>> {
 	const filePath = path.join('data', 'index.json');
