@@ -5,7 +5,7 @@ export type Namsskeid = {
 	Numer: string,
 	Heiti: string,
 	Einingar: number,
-	Kennslumisseri: Array<string>,
+	Kennslumisseri: string,
 	Namstig: string,
 	Vefsida: string,
 	category: string;
@@ -47,7 +47,7 @@ export async function lesa(skra: string, category: string): Promise<Array<Namssk
 						Numer: '',
 						Heiti: '',
 						Einingar: 0,
-						Kennslumisseri: [''],
+						Kennslumisseri: '',
 						Namstig: '',
 						Vefsida: '',
 						category: ''
@@ -68,7 +68,7 @@ export async function lesa(skra: string, category: string): Promise<Array<Namssk
 						if (index === 2) {
 							obj[key] = parseDecimalCommaNumber(values[index]);
 						} else if (index === 3) {
-							obj[key] = [values[index]]
+							obj[key] = values[index]
 						}
 						else if (index === 5) {
 							obj[key] = isUrlValid(values[index])
@@ -80,7 +80,7 @@ export async function lesa(skra: string, category: string): Promise<Array<Namssk
 					const existingObjIndex = vigur.findIndex((j: Namsskeid) => j.Numer === obj.Numer && j.Kennslumisseri !== obj.Kennslumisseri);
 					if (existingObjIndex !== -1) {
 						const j = vigur[existingObjIndex];
-						if (j.Kennslumisseri !== obj.Kennslumisseri) { j.Kennslumisseri.push(obj.Kennslumisseri[0]) }
+						if (j.Kennslumisseri !== obj.Kennslumisseri) { j.Kennslumisseri += ', ' + obj.Kennslumisseri }
 						if (j.Heiti !== obj.Heiti) { j.Heiti += `/ ${obj.Heiti}` }
 					} else {
 						if (typeof obj.Numer === "string" && obj.Numer.length) {

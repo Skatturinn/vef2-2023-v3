@@ -218,6 +218,18 @@ export async function end() {
 //     created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
 //   	updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 // );
+function qstring(table: string, strengur: string) {
+	let q = `
+	SELECT * FROM ${table}
+  `;
+	if (strengur) {
+		q += `WHERE ${strengur}`;
+	}
+	q += `;`;
+	return q;
+
+}
+
 export async function createDeild({ title, description, csv }: Deildir) {
 	const slug = csv.split('.')[0];
 	const q = `
@@ -235,18 +247,35 @@ export async function createDeild({ title, description, csv }: Deildir) {
 
 	return null;
 }
-// CREATE TABLE public.namsskeid(
-// 	id SERIAL PRIMARY KEY,
-// 	numer VARCHAR(64) NOT NULL UNIQUE,
-// 	name VARCHAR(64) NOT NULL,
-// 	category VARCHAR(64) NOT NULL,
-// 	einingar FLOAT,
-// 	kennslumisseri VARCHAR(64),
-// 	namstig VARCHAR(64),
-// 	vefsida VARCHAR(64),
-// 	created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-// 	CONSTRAINT category FOREIGN KEY(category) REFERENCES deild(slug)
-// )
+export type sqlDeildir = {
+	name: string,
+	description: string,
+	slug: string,
+	created: Date | null,
+	updated: Date | null;
+}
+export async function getDeild({ name = '', description = '', slug = '', created = null, updated = null }: sqlDeildir) {
+	if (created || updated || description) {
+		throw new Error('Ekki í boði að sækja aftir þessum stikum, Heiti eða slug leyfileg')
+	}
+	const input = [name, slug];
+	const queryinput = ['name', 'slug']
+	let strengur = '';
+	const values: Array<string | number> = [];
+	input.forEach((stak, index) => {
+		if (stak) {
+			strengur += (strengur) ? `, ${queryinput[index]} = $${index}` : `${queryinput[index]} = $${index}`;
+			values.push(stak)
+		}
+	})
+	const q = qstring('deild', strengur);
+	const result = await query(q, values);
+	if (result && result.rowCount) {
+		return result.rows;
+	}
+
+	throw new Error(`Error with query: ${q}`);
+}
 export async function createNamsskeid({ Numer, Heiti, Einingar, Kennslumisseri, Namstig, Vefsida, category }: Namsskeid) {
 	const q = `
 	  INSERT INTO namsskeid
@@ -263,6 +292,30 @@ export async function createNamsskeid({ Numer, Heiti, Einingar, Kennslumisseri, 
 
 	throw new Error('Error with query INSERT INTO namsskeid');
 }
+// getCourseByCourseId,
+// getCourseByTitle,
+export async function getNamsskeid({ Numer = '', Heiti = '', Einingar = 0, Kennslumisseri = '', Namstig = '', Vefsida = '', category = '' }: Namsskeid) {
+	if (Vefsida) {
+		throw new Error('Ekki í boði að gera query með þessum gildum kennslumisseri eða vefsiða')
+	}
+	const input = [Numer, Heiti, category, Einingar, Kennslumisseri, Namstig];
+	const queryinput = ['numer', 'name', 'category', 'kennslumisseri', 'einingar', 'namstig']
+	let strengur = '';
+	const values: Array<string | number> = [];
+	input.forEach((stak, index) => {
+		if (stak) {
+			strengur += (strengur) ? `, ${queryinput[index]} = $${index + 1}` : `${queryinput[index]} = $${index + 1}`;
+			values.push(stak)
+		}
+	})
+	const q = qstring('namsskeid', strengur);
+	const result = await query(q, values);
+	if (result && result.rowCount) {
+		return result.rows;
+	}
+	throw new Error(`query: ${q}`);
+}
+// getDepartmentBySlug,
 // export async function deleteEvent(id) {
 // 	const q = `
 // 	  DELETE FROM events

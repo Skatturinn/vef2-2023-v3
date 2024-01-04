@@ -1,23 +1,16 @@
 import express, { Request, Response, ErrorRequestHandler } from 'express';
 import dotenv from 'dotenv';
 import { buildDB, getDeildir } from './lib/build.js';
-
-
+import { query } from './lib/db.js';
+import { router } from './lib/router.js';
 dotenv.config();
 
 const app = express();
 
-
 // app.get('/', catchErrors(hello), catchErrors(bye));
 // hann var með catchErros(error) á milli hello og bye ? afh
 // app.use(router);
-
-app.get('/build',
-	async (req, res) => {
-		const a = await buildDB(await getDeildir());
-		return res.json(a)
-	}
-)
+app.use(router)
 
 const port = 3000;
 

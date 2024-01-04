@@ -5,6 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "nodemon",
+		"setup": "node --loader ts-node/esm ./src/lib/build.ts",
 		"start": "node --loader ts-node/esm ./src/app.ts"
 	},
 	"keywords": [],
@@ -12,6 +13,7 @@
 	"license": "ISC",
 	"dependencies": {
 		"express": "^4.18.2",
+		"express-validator": "^7.0.1",
 		"pg": "^8.11.3",
 		"ts-node": "^10.9.1",
 		"xss": "^1.0.14"

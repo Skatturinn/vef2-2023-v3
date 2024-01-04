@@ -13,7 +13,7 @@ CREATE TABLE public.namsskeid (
  	name TEXT,
  	category VARCHAR(64) NOT NULL,
  	einingar FLOAT,
- 	kennslumisseri VARCHAR(64),
+ 	kennslumisseri VARCHAR(64) NOT NULL,
  	namstig VARCHAR(64),
  	vefsida VARCHAR(256),
  	created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
