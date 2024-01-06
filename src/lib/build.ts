@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs/promises';
-import { createDeild, createNamsskeid, createSchema, dropSchema, end } from './db.js';
+import { createDeild, createNamsskeid, createSchema, dropSchema } from './db.js';
 import { lesa } from './readnwrite.js';
 
 export async function getDeildir(): Promise<Array<Deildir>> {

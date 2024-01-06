@@ -80,7 +80,7 @@ export async function lesa(skra: string, category: string): Promise<Array<Namssk
 					const existingObjIndex = vigur.findIndex((j: Namsskeid) => j.Numer === obj.Numer && j.Kennslumisseri !== obj.Kennslumisseri);
 					if (existingObjIndex !== -1) {
 						const j = vigur[existingObjIndex];
-						if (j.Kennslumisseri !== obj.Kennslumisseri) { j.Kennslumisseri += ', ' + obj.Kennslumisseri }
+						if (j.Kennslumisseri !== obj.Kennslumisseri) { j.Kennslumisseri += `,${obj.Kennslumisseri}` }
 						if (j.Heiti !== obj.Heiti) { j.Heiti += `/ ${obj.Heiti}` }
 					} else {
 						if (typeof obj.Numer === "string" && obj.Numer.length) {

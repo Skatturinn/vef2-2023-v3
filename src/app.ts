@@ -1,39 +1,48 @@
-import express, { Request, Response, ErrorRequestHandler } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
-import { buildDB, getDeildir } from './lib/build.js';
-import { query } from './lib/db.js';
 import { router } from './lib/router.js';
+
 dotenv.config();
+
+function cors(req: Request, res: Response, next: NextFunction) {
+	res.header('Access-Control-Allow-Origin', '*');
+	res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE');
+	res.header(
+		'Access-Control-Allow-Headers',
+		'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+	);
+	next();
+}
 
 const app = express();
 
-// app.get('/', catchErrors(hello), catchErrors(bye));
-// hann var með catchErros(error) á milli hello og bye ? afh
-// app.use(router);
-app.use(router)
+app.use(express.json());
 
-const port = 3000;
+app.use(cors);
+app.use(router);
 
-function notFoundHandler(req: Request, res: Response) {
-	console.warn('Not found', req.originalUrl);
-	res.status(404).json({ error: 'Not found' });
-}
+const port = process.env.PORT || 3000;
 
-type ErrorRequest = {
-	status: number
-};
+app.use((req: Request, res: Response) => {
+	res.status(404).json({ error: 'not found' });
+});
 
-const errorHandler: ErrorRequestHandler = (err: ErrorRequest, req, res) => {
-	console.error(err);
-	if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-		return res.status(400).json({ error: 'Invalid json' });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+	if (
+		err instanceof SyntaxError &&
+		'status' in err &&
+		err.status === 400 &&
+		'body' in err
+	) {
+		return res.status(400).json({ error: 'invalid json' });
 	}
 
-	return res.status(500).json({ error: 'Internal server error' });
-}
-
-app.use(notFoundHandler);
-app.use(errorHandler);
+	console.error('error handling route', err);
+	return res
+		.status(500)
+		.json({ error: err.message ?? 'internal server error' });
+});
 
 app.listen(port, () => {
 	console.log(`Server running at http://localhost:${port}/`);

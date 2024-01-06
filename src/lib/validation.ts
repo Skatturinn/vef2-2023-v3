@@ -4,9 +4,9 @@ import xss from 'xss';
 import {
 	getNamsskeid,
 	getDeild,
-} from './db';
+} from './db.js';
 
-const ALLOWED_SEMESTERS = ['Vor', 'Sumar', 'Haust', 'Heilsárs']
+export const ALLOWED_SEMESTERS = ['Vor', 'Sumar', 'Haust', 'Heilsárs']
 /**
  * Checks to see if there are validation errors or returns next middlware if not.
  * @param {object} req HTTP request
@@ -26,16 +26,16 @@ export function validationCheck(
 		const serverError = errors.find((error) => error.msg === 'server error');
 
 		let status = 400;
-
 		if (serverError) {
 			status = 500;
+			console.log(serverError, status)
 		} else if (notFoundError) {
 			status = 404;
+			console.log(notFoundError, status)
 		}
-
+		console.log(errors, status)
 		return res.status(status).json({ errors });
 	}
-
 	return next();
 }
 
@@ -69,7 +69,7 @@ export const xssSanitizer = (param: string) =>
 export const xssSanitizerMany = (params: string[]) =>
 	params.map((param) => xssSanitizer(param));
 
-export const genericSanitizer = (param: string) => body(param).trim().escape();
+export const genericSanitizer = (param: string) => { return body(param).trim().escape() };
 
 export const genericSanitizerMany = (params: string[]) =>
 	params.map((param) => genericSanitizer(param));
@@ -100,6 +100,7 @@ export const stringValidator = ({
 	if (optional) {
 		return val.optional();
 	}
+
 	return val;
 };
 
@@ -113,18 +114,21 @@ export const semesterValidator = ({ field = '', optional = false } = {}) => {
 	return val;
 };
 
-export const departmentDoesNotExistValidator = body('title').custom(
+export const departmentDoesNotExistValidator = body('name').custom(
 	async (title) => {
-		if (await getDeild({ name: title, description: '', slug: '', created: null, updated: null })) {
-			return Promise.reject(new Error('department with title already exists'));
+		try {
+			if (await getDeild({ name: title, description: '', slug: '', created: null, updated: null })) {
+				return Promise.reject(new Error('department with title already exists'));
+			}
+		} catch {
+			return Promise.resolve();
 		}
-		return Promise.resolve();
 	},
 );
 
 export const courseTitleDoesNotExistValidator = body('title').custom(
 	async (title: string) => {
-		if (await getNamsskeid({ Numer: '', Heiti: title, Einingar: 0, Kennslumisseri: [''], Namstig: '', Vefsida: '', category: '' })) {
+		if (await getNamsskeid({ Numer: '', Heiti: title, Einingar: 0, Kennslumisseri: '', Namstig: '', Vefsida: '', category: '' })) {
 			return Promise.reject(new Error('course with title already exists'));
 		}
 		return Promise.resolve();
@@ -133,7 +137,7 @@ export const courseTitleDoesNotExistValidator = body('title').custom(
 
 export const courseIdDoesNotExistValidator = body('numer').custom(
 	async (courseId: string) => {
-		if (await getNamsskeid({ Numer: courseId, Heiti: '', Einingar: 0, Kennslumisseri: [''], Namstig: '', Vefsida: '', category: '' })) {
+		if (await getNamsskeid({ Numer: courseId, Heiti: '', Einingar: 0, Kennslumisseri: '', Namstig: '', Vefsida: '', category: '' })) {
 			return Promise.reject(new Error('course with courseId already exists'));
 		}
 		return Promise.resolve();

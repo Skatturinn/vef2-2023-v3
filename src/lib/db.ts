@@ -68,165 +68,14 @@ export async function end() {
 	await pool.end();
 }
 
-/* TODO útfæra aðgeðir á móti gagnagrunni */
-// export async function listEvents() {
-// 	const q = `
-// 	  SELECT
-// 		id, name, slug, description, created, updated
-// 	  FROM
-// 		events
-// 	`;
-
-// 	const result = await query(q);
-
-// 	if (result) {
-// 		return result.rows;
-// 	}
-
-// 	return null;
-// }
-
-// export async function listEvent(slug: string) {
-// 	const q = `
-// 	SELECT
-// 		id, name, slug, description, location, url, created, updated
-// 	FROM
-// 		events
-// 	WHERE slug = $1
-// 	`;
-
-// 	const result = await query(q, [slug]);
-// 	if (result && result.rowCount === 1) {
-// 		return result.rows[0];
-// 	}
-
-// 	return null // gekk ekki
-// }
-
-// export async function listRegistered(event) {
-// 	const q = `
-// 	  SELECT
-// 		id, name, comment
-// 	  FROM
-// 		registrations
-// 	  WHERE event = $1
-// 	`;
-
-// 	const result = await query(q, [event]);
-
-// 	if (result) {
-// 		return result.rows;
-// 	}
-
-// 	return null;
-// }
-// skráir þig á viðburð
-// export async function register({ name, comment, event } = {}) {
-// 	const q = `
-// 	  INSERT INTO registrations
-// 		(name, comment, event)
-// 	  VALUES
-// 		($1, $2, $3)
-// 	  RETURNING
-// 		id, name, comment, event;
-// 	`;
-// 	let b = true;
-// 	const arr = await listRegistered(event)
-// 	arr.forEach(element => {
-// 		if (element.name === name) {
-// 			b = false
-// 		}
-// 	});
-// 	if (b) {
-// 		const values = [name, comment, event];
-// 		const result = await query(q, values);
-// 		if (result && result.rowCount === 1) {
-// 			return result.rows[0];
-// 		}
-// 	}
-// 	throw new Error('Notandi núþegar skráður')
-
-// }
-// export async function unregister({ name, event } = {}) {
-// 	const q = `
-// 		DELETE FROM registrations
-// 		WHERE name = $1 AND event = $2
-// 	`
-// 	const values = [name, event];
-// 	const result = await query(q, values);
-// 	return result?.rowCount
-// }
-// export async function unregister({ name, event } = {}) {
-// 	let values;
-// 	let q;
-// 	if (name) {
-// 		q = `
-// 		DELETE FROM registrations
-// 		WHERE name = $1 AND event = $2
-// 	  `;
-// 		values = [name, event];
-// 	} else {
-// 		q = `
-// 		DELETE FROM registrations
-// 		WHERE event = $1
-// 	  `;
-// 		values = [event]
-// 	}
-
-// 	try {
-// 		const result = await query(q, values);
-// 		return result?.rowCount
-// 	} catch (error) {
-// 		console.error('Error during unregister:', error.message);
-// 		return null;
-// 	}
-// }
-// export async function deleteEvent({ event } = {}) {
-// 	await unregister({ name: false, event })
-// 	const q = `
-// 	  DELETE FROM events
-// 	  WHERE slug = $1
-// 	`;
-// 	const values = [event];
-// 	try {
-// 		const result = await query(q, values);
-// 		return result?.rowCount
-// 	} catch (err) {
-// 		console.error('Error during unregister:', err.message);
-// 		return null;
-// 	}
-// }
-// export async function deleteEvent(id) {
-// 	await unregister({ name: false, event: id })
-// 	const q = `
-// 	  DELETE FROM events
-// 	  WHERE id = $1;
-// 	`;
-// 	const values = [id]
-// 	const result = await query(q, values);
-// 	if (result && result.rowCount === 1) {
-// 		return result.rows[0];
-// 	}
-
-// 	return null;
-// }
-// CREATE TABLE public.deild (
-// 	id SERIAL PRIMARY KEY,
-//   	name VARCHAR(64) NOT NULL UNIQUE,
-//   	slug VARCHAR(64) NOT NULL UNIQUE,
-// 	description TEXT,
-//     created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
-//   	updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
-// );
 function qstring(table: string, strengur: string) {
-	let q = `
-	SELECT * FROM ${table}
-  `;
+	let a = ``;
+	// console.log('a', strengur, 'q')
 	if (strengur) {
-		q += `WHERE ${strengur}`;
+		a += `WHERE ${strengur}`;
 	}
-	q += `;`;
-	return q;
+	// console.log(q)
+	return `SELECT * FROM ${table} ${a};`;
 
 }
 
@@ -254,7 +103,7 @@ export type sqlDeildir = {
 	created: Date | null,
 	updated: Date | null;
 }
-export async function getDeild({ name = '', description = '', slug = '', created = null, updated = null }: sqlDeildir) {
+export async function getDeild({ name = '', description = '', slug = '', created = null, updated = null }: sqlDeildir): Promise<Array<mappedDeildir> | mappedDeildir> {
 	if (created || updated || description) {
 		throw new Error('Ekki í boði að sækja aftir þessum stikum, Heiti eða slug leyfileg')
 	}
@@ -262,16 +111,18 @@ export async function getDeild({ name = '', description = '', slug = '', created
 	const queryinput = ['name', 'slug']
 	let strengur = '';
 	const values: Array<string | number> = [];
+	let count = 0;
 	input.forEach((stak, index) => {
 		if (stak) {
-			strengur += (strengur) ? `, ${queryinput[index]} = $${index}` : `${queryinput[index]} = $${index}`;
+			count += 1;
+			strengur += (strengur) ? `, ${queryinput[index]} = $${count}` : `${queryinput[index]} = $${count}`;
 			values.push(stak)
 		}
 	})
 	const q = qstring('deild', strengur);
 	const result = await query(q, values);
 	if (result && result.rowCount) {
-		return result.rows;
+		return result.rowCount === 1 ? result.rows[0] : result.rows
 	}
 
 	throw new Error(`Error with query: ${q}`);
@@ -294,7 +145,7 @@ export async function createNamsskeid({ Numer, Heiti, Einingar, Kennslumisseri, 
 }
 // getCourseByCourseId,
 // getCourseByTitle,
-export async function getNamsskeid({ Numer = '', Heiti = '', Einingar = 0, Kennslumisseri = '', Namstig = '', Vefsida = '', category = '' }: Namsskeid) {
+export async function getNamsskeid({ Numer = '', Heiti = '', Einingar = 0, Kennslumisseri = '', Namstig = '', Vefsida = '', category = '' }: Namsskeid): Promise<Array<Namsskeidmapped> | Namsskeidmapped> {
 	if (Vefsida) {
 		throw new Error('Ekki í boði að gera query með þessum gildum kennslumisseri eða vefsiða')
 	}
@@ -302,18 +153,218 @@ export async function getNamsskeid({ Numer = '', Heiti = '', Einingar = 0, Kenns
 	const queryinput = ['numer', 'name', 'category', 'kennslumisseri', 'einingar', 'namstig']
 	let strengur = '';
 	const values: Array<string | number> = [];
+	let count = 0;
 	input.forEach((stak, index) => {
 		if (stak) {
-			strengur += (strengur) ? `, ${queryinput[index]} = $${index + 1}` : `${queryinput[index]} = $${index + 1}`;
+			count += 1;
+			strengur += (strengur) ? `, ${queryinput[index]} = $${count}` : `${queryinput[index]} = $${count}`;
 			values.push(stak)
 		}
 	})
 	const q = qstring('namsskeid', strengur);
 	const result = await query(q, values);
 	if (result && result.rowCount) {
-		return result.rows;
+		return result.rowCount === 1 ? result.rows[0] : result.rows
 	}
 	throw new Error(`query: ${q}`);
+}
+
+export type Links = {
+	self: {
+		href: string,
+	},
+	courses: {
+		href: string
+	},
+}
+export type Links2 = {
+	self: {
+		href: string,
+	},
+	department: {
+		href: string
+	},
+}
+
+export type mappedDeildir = {
+	id: number | undefined,
+	name: string,
+	slug: string,
+	description: string | undefined,
+	created: Date | undefined,
+	updated: Date | undefined,
+	_links: Links | undefined,
+};
+
+export function departmentMapper(
+	potentialDepartment: unknown
+): mappedDeildir {
+	const department = potentialDepartment as Partial<mappedDeildir> | null;
+
+	if (!department || !department.id || !department.name || !department.slug) {
+		const mapped: mappedDeildir = {
+			id: department?.id,
+			name: String(!!department?.name),
+			slug: String(!!department?.slug),
+			description: String(!!department?.description),
+			created: department?.created,
+			updated: department?.updated,
+			_links: undefined,
+		};
+		return mapped;
+	}
+
+	const links: Links = {
+		self: {
+			href: `/departments/${department.slug}`,
+		},
+		courses: {
+			href: `/departments/${department.slug}/courses`,
+		},
+	};
+
+	const mapped: mappedDeildir = {
+		id: department.id,
+		name: department.name,
+		slug: department.slug,
+		description: department.description ?? undefined,
+		created: department.created,
+		updated: department.updated,
+		_links: links,
+	};
+
+	return mapped;
+}
+export type Namsskeidmapped = {
+	id: number | undefined,
+	numer: string,
+	name: string,
+	einingar: number,
+	kennslumisseri: string,
+	namstig: string,
+	vefsida: string,
+	category: string;
+	created: Date | undefined,
+	update: Date | undefined,
+	_links: Links | Links2
+};
+
+export function courseMapper(potentialCourse: unknown): Namsskeidmapped | null {
+	const course = potentialCourse as Namsskeidmapped | null;
+
+	if (!course || !course.id) {
+		return null;
+	}
+
+	const links: Links2 = {
+		self: {
+			href: `/departments/${course.category}/courses/${course.numer}`,
+		},
+		department: {
+			href: `/departments/${course.category}`
+		}
+	};
+	const mapped: Namsskeidmapped = {
+		id: course.id,
+		numer: course.numer,
+		name: course.name,
+		einingar: course.einingar ?? undefined,
+		kennslumisseri: course.kennslumisseri ?? undefined,
+		namstig: course.namstig ?? undefined,
+		vefsida: course.vefsida ?? undefined,
+		category: course.category,
+		created: course?.created,
+		update: course?.update,
+		_links: links
+	};
+
+	return mapped;
+}
+
+
+export async function insertCourse(course: Namsskeid): Promise<Namsskeidmapped | null> {
+	const result = await query(
+		'INSERT INTO namsskeid (numer, name, einingar, kennslumisseri, namstig, vefsida, category) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;',
+		[course.Numer, course.Heiti, course.Einingar, course.Kennslumisseri, course.Namstig, course.Vefsida, course.category],
+	);
+	const mapped = courseMapper(result?.rows[0]);
+	return mapped;
+}
+
+
+export async function insertDepartment(
+	department: Deildir
+): Promise<mappedDeildir | null> {
+	const { title, description, csv } = department;
+	const result = await query(
+		'INSERT INTO deild (name, description, slug) VALUES ($1, $2, $3) RETURNING id, name, slug, description, created, updated',
+		[title, description || '', csv]
+	);
+
+	const mapped = departmentMapper(result?.rows[0]);
+
+	return mapped;
+}
+
+export async function conditionalUpdate(
+	table: 'deild' | 'namsskeid',
+	id: number,
+	fields: Array<string | null>,
+	values: Array<string | number | null>,
+) {
+	const filteredFields = fields.filter((i) => typeof i === 'string');
+	const filteredValues = values.filter(
+		(i): i is string | number => typeof i === 'string' || typeof i === 'number',
+	);
+
+	if (filteredFields.length === 0) {
+		return false;
+	}
+
+	if (filteredFields.length !== filteredValues.length) {
+		throw new Error('fields and values must be of equal length');
+	}
+
+	// id is field = 1
+	const updates = filteredFields.map((field, i) => `${field} = $${i + 2}`);
+
+	const q = `
+	  UPDATE ${table}
+		SET ${updates.join(', ')}
+	  WHERE
+		id = $1
+	  RETURNING *
+	  `;
+
+	const queryValues: Array<string | number> = (
+		[id] as Array<string | number>
+	).concat(filteredValues);
+	const result = await query(q, queryValues);
+
+	return result;
+}
+
+export async function deleteDepartmentBySlug(slug: string): Promise<boolean> {
+	const result = await query('DELETE FROM deild WHERE slug = $1', [slug]);
+
+	if (!result) {
+		return false;
+	}
+
+	return result.rowCount === 1;
+}
+export async function deleteCourseByCourseId(
+	numer: string,
+): Promise<boolean> {
+	const result = await query('DELETE FROM namsskeid WHERE numer = $1', [
+		numer,
+	]);
+
+	if (!result) {
+		return false;
+	}
+
+	return result.rowCount === 1;
 }
 // getDepartmentBySlug,
 // export async function deleteEvent(id) {
