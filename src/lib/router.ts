@@ -1,4 +1,6 @@
+
 import express, { NextFunction, Request, Response } from "express"
+
 import { Namsskeidmapped, courseMapper, departmentMapper, getDeild, getNamsskeid, mappedDeildir, deleteDepartmentBySlug } from "./db.js";
 import { createCourse, createDepartment, deleteCourse, updateCourse, updateDepartment } from "./courses.js";
 

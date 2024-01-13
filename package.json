@@ -5,7 +5,8 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "nodemon",
-		"setup": "node --loader ts-node/esm ./src/lib/build.ts",
+		"begin": "tsc ./src/*.ts",
+		"setup": "node --loader ts-node/esm ./src/lib/build.ts tsc ./src/.*ts",
 		"start": "node --loader ts-node/esm ./src/app.ts"
 	},
 	"keywords": [],

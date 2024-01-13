@@ -8,7 +8,6 @@ dotenv.config()
 
 const SCHEMA_FILE = './sql/schema.sql';
 const DROP_SCHEMA_FILE = './sql/drop.sql';
-// DATABASE_URL = 'postgres://Notandi:ShoheiOhtani700M@localhost:5432/vef2-2022-v2'
 const { DATABASE_URL: connectionString, NODE_ENV: nodeEnv = 'development' } =
 	process.env;
 
